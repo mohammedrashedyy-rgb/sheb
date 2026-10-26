@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اللجنة الاجتماعية - مدرسة شعب البطم الثانوية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        gold: {
+                            500: '#d97706',
+                            600: '#b45309',
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white;
+                color: black;
+            }
+            .shadow-xl, .shadow-md, .shadow-sm {
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-5 left-5 z-[200] space-y-2 no-print pointer-events-none"></div>
+
+    <!-- Login Overlay / Screen -->
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border-t-8 border-amber-500">
+            <!-- Header section inside login box -->
+            <div class="bg-gradient-to-r from-slate-900 via-navy-800 to-slate-900 text-white p-6 text-center relative">
+                <div class="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-3xl font-extrabold mx-auto shadow-lg ring-4 ring-amber-500/30 mb-3">
+                    <i class="fa-solid fa-school-lock"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-amber-400">مدرسة شعب البطم الثانوية</h2>
+                <p class="text-sm text-slate-200 mt-1 font-semibold">بوابة اللجنة الاجتماعية والتكافل</p>
+                <div class="mt-3 text-xs bg-white/10 py-1.5 px-3 rounded-full inline-block text-amber-200 border border-white/10">
+                    منسق اللجنة: <span class="font-bold">الأستاذ نزار الجبارين</span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-5">
+                <div>
+                    <label for="loginName" class="block text-sm font-bold text-slate-700 mb-1">
+                        <i class="fa-solid fa-user text-amber-500 ml-1"></i> اسم المعلم / الإداري
+                    </label>
+                    <input type="text" id="loginName" placeholder="أدخل الاسم (مثال: نزار الجبارين)..." class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition bg-slate-50 focus:bg-white">
+                </div>
+
+                <div>
+                    <label for="loginPassword" class="block text-sm font-bold text-slate-700 mb-1">
+                        <i class="fa-solid fa-key text-amber-500 ml-1"></i> كلمة المرور
+                    </label>
+                    <input type="password" id="loginPassword" placeholder="كلمة المرور (222)..." class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none transition bg-slate-50 focus:bg-white">
+                </div>
+
+                <div id="loginError" class="hidden bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl p-3 text-center">
+                    <!-- Dynamic error message -->
+                </div>
+
+                <button type="submit" id="loginBtn" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-900 font-extrabold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                </button>
+
+                <div class="pt-2 text-center">
+                    <button type="button" onclick="quickLoginNizar()" class="text-xs text-amber-600 hover:text-amber-800 underline font-bold">
+                        <i class="fa-solid fa-bolt"></i> دخول سريع باسم الأستاذ نزار الجبارين
+                    </button>
+                </div>
+
+                <div class="text-center text-xs text-slate-500 mt-2 border-t border-slate-100 pt-3">
+                    <p>رمز المرور الافتراضي المقبول: <span class="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border">222</span></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application UI -->
+    <div id="appContainer" class="hidden min-h-screen flex flex-col justify-between">
+        <!-- Header Section -->
+        <header class="bg-gradient-to-r from-slate-900 via-navy-800 to-slate-900 text-white shadow-xl border-b-4 border-amber-500 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <div class="w-14 h-14 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-2xl font-bold shadow-lg ring-4 ring-amber-500/30">
+                            <i class="fa-solid font-bold fa-people-roof"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-extrabold tracking-wide text-amber-400">مدرسة شعب البطم الثانوية</h1>
+                            <p class="text-sm sm:text-base font-semibold text-slate-200">صندوق اللجنة الاجتماعية والتكافل</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center justify-center gap-3">
+                        <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-center md:text-right flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-300">
+                                <i class="fa-solid fa-user-circle text-xl"></i>
+                            </div>
+                            <div>
+                                <span class="block text-[11px] text-slate-300">مرحباً بك،</span>
+                                <span class="text-sm font-bold text-amber-300" id="currentUserName">الأستاذ نزار الجبارين</span>
+                            </div>
+                        </div>
+
+                        <button onclick="handleLogout()" class="no-print bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold px-3 py-2.5 rounded-xl border border-rose-500 transition flex items-center gap-1.5 cursor-pointer" title="تسجيل الخروج">
+                            <i class="fa-solid fa-right-from-bracket"></i> خروج
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Container -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+
+            <!-- Controls / Actions Top Bar -->
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 no-print">
+                <div class="flex items-center gap-2">
+                    <label for="monthSelect" class="font-bold text-slate-700">شهر التقرير:</label>
+                    <input type="month" id="monthSelect" class="bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm font-semibold" onchange="changeMonth()">
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition shadow-md cursor-pointer">
+                        <i class="fa-solid fa-print"></i> طباعة / تصدير PDF
+                    </button>
+                    <button onclick="resetData()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i> استعادة البيانات الافتراضية
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dashboard Cards (المؤشرات الإحصائية) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Total Collected -->
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-700 text-white rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute -left-4 -bottom-4 opacity-20 text-7xl text-white">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-emerald-100 font-semibold">إجمالي المبالغ المجمعة</span>
+                        <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black mb-1" id="totalCollected">0 ₪</div>
+                        <p class="text-xs text-emerald-100" id="collectedStatusText">من أصل 0 ₪ متوقعة</p>
+                    </div>
+                </div>
+
+                <!-- Total Expenses -->
+                <div class="bg-gradient-to-br from-rose-500 to-red-700 text-white rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute -left-4 -bottom-4 opacity-20 text-7xl text-white">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-rose-100 font-semibold">إجمالي المصروفات</span>
+                        <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black mb-1" id="totalExpenses">0 ₪</div>
+                        <p class="text-xs text-rose-100" id="expensesCountText">0 عمليات صرف هذا الشهر</p>
+                    </div>
+                </div>
+
+                <!-- Remaining Box -->
+                <div class="bg-gradient-to-br from-slate-800 to-navy-900 text-white rounded-2xl p-6 shadow-lg relative overflow-hidden flex flex-col justify-between border-b-4 border-amber-500">
+                    <div class="absolute -left-4 -bottom-4 opacity-20 text-7xl text-amber-400">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-slate-300 font-semibold">المتبقي في الصندوق</span>
+                        <span class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                            <i class="fa-solid fa-vault"></i>
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-black text-amber-400 mb-1" id="remainingBalance">0 ₪</div>
+                        <p class="text-xs text-slate-300">الرصيد الصافي المتاح حالياً</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: Teachers & Collections -->
+            <section class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden mb-10">
+                <div class="bg-slate-900 text-white p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-users"></i> القسم الأول: اشتراكات المعلمين
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1">تسجيل متابعة تحصيل الاشتراكات الشهرية لكادر المدرسة (المبلغ الافتراضي 222 شيكل)</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto no-print">
+                        <input type="text" id="searchTeacher" placeholder="بحث باسم المعلم..." oninput="renderTeachers()" class="bg-slate-800 text-white text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 w-full md:w-48">
+                        <button onclick="openAddTeacherModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-3 py-2 rounded-lg text-sm flex items-center gap-1 transition cursor-pointer">
+                            <i class="fa-solid fa-user-plus"></i> إضافة معلم
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Teachers Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-sm border-b border-slate-200">
+                                <th class="py-3 px-4 font-bold">#</th>
+                                <th class="py-3 px-4 font-bold">اسم المعلم / الموظف</th>
+                                <th class="py-3 px-4 font-bold text-center">المبلغ المطلوب</th>
+                                <th class="py-3 px-4 font-bold text-center">حالة الدفع</th>
+                                <th class="py-3 px-4 font-bold text-center no-print">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachersTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 2: Expenses -->
+            <section class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden mb-10">
+                <div class="bg-slate-900 text-white p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-receipt"></i> القسم الثاني: مصروفات اللجنة الاجتماعية
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1">سجل التكاليف والمناسبات الاجتماعية والمستلزمات لهذا الشهر</p>
+                    </div>
+                    <button onclick="openExpenseModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-1 transition no-print cursor-pointer">
+                        <i class="fa-solid fa-plus-circle"></i> إضافة مصروف جديد
+                    </button>
+                </div>
+
+                <!-- Expenses Filter & Search -->
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row gap-3 justify-between items-center no-print">
+                    <input type="text" id="searchExpense" placeholder="بحث في المصروفات..." oninput="renderExpenses()" class="bg-white text-slate-800 text-sm rounded-lg px-3 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-64">
+                    
+                    <select id="filterCategory" onchange="renderExpenses()" class="bg-white text-slate-800 text-sm rounded-lg px-3 py-2 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-auto">
+                        <option value="">جميع الفئات</option>
+                        <option value="عيادة مريض">عيادة مريض</option>
+                        <option value="مباركة ومناسبة">مباركة ومناسبة</option>
+                        <option value="واجب تعزية">واجب تعزية</option>
+                        <option value="مستلزمات وضيافة">مستلزمات وضيافة</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+
+                <!-- Expenses Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-sm border-b border-slate-200">
+                                <th class="py-3 px-4 font-bold">التاريخ</th>
+                                <th class="py-3 px-4 font-bold">البيان / السبب</th>
+                                <th class="py-3 px-4 font-bold">الفئة</th>
+                                <th class="py-3 px-4 font-bold text-center">المبلغ</th>
+                                <th class="py-3 px-4 font-bold text-center no-print">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expensesTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer Section -->
+        <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center text-sm no-print">
+            <div class="max-w-7xl mx-auto px-4">
+                <p class="font-semibold text-slate-300">مدرسة شعب البطم الثانوية - اللجنة الاجتماعية</p>
+                <p class="text-xs mt-1 text-slate-500">منسق اللجنة: الأستاذ نزار الجبارين &copy; <span id="yearSpan"></span></p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal Add/Edit Teacher -->
+    <div id="teacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-t-4 border-amber-500">
+            <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2" id="teacherModalTitle">
+                <i class="fa-solid fa-user-pen text-amber-500"></i> تعديل بيانات المعلم
+            </h3>
+            <form id="teacherForm" onsubmit="handleTeacherSubmit(event)" class="space-y-4">
+                <input type="hidden" id="teacherId">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">اسم المعلم / الموظف</label>
+                    <input type="text" id="teacherName" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المبلغ المطلوب (شيكل)</label>
+                    <input type="number" id="teacherAmount" min="0" value="222" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">حالة الدفع</label>
+                    <select id="teacherStatus" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <option value="paid">تم الدفع</option>
+                        <option value="unpaid">لم يدفع بعد</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeTeacherModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-sm cursor-pointer">إلغاء</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-sm cursor-pointer">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit Expense -->
+    <div id="expenseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-t-4 border-rose-500">
+            <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2" id="expenseModalTitle">
+                <i class="fa-solid fa-receipt text-rose-500"></i> إضافة مصروف جديد
+            </h3>
+            <form id="expenseForm" onsubmit="handleExpenseSubmit(event)" class="space-y-4">
+                <input type="hidden" id="expenseId">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">التاريخ</label>
+                    <input type="date" id="expenseDate" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">البيان / السبب</label>
+                    <input type="text" id="expenseTitle" placeholder="مثال: هدية مباركة لمولود..." required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الفئة</label>
+                    <select id="expenseCategory" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        <option value="عيادة مريض">عيادة مريض</option>
+                        <option value="مباركة ومناسبة">مباركة ومناسبة</option>
+                        <option value="واجب تعزية">واجب تعزية</option>
+                        <option value="مستلزمات وضيافة">مستلزمات وضيافة</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المبلغ المصروف (شيكل)</label>
+                    <input type="number" id="expenseAmount" min="1" placeholder="أدخل المبلغ..." required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeExpenseModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-sm cursor-pointer">إلغاء</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm cursor-pointer">حفظ المصروف</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initial Teachers List (14 Teachers)
+        const defaultTeachers = [
+            { id: 1, name: "نزار الجبارين", amount: 222, status: "paid" },
+            { id: 2, name: "أنور الجبارين", amount: 222, status: "paid" },
+            { id: 3, name: "عمر الهريني", amount: 222, status: "paid" },
+            { id: 4, name: "أحمد العمارين", amount: 222, status: "unpaid" },
+            { id: 5, name: "محمد جبارين", amount: 222, status: "paid" },
+            { id: 6, name: "محمود النجار", amount: 222, status: "unpaid" },
+            { id: 7, name: "خالد أبو عرام", amount: 222, status: "paid" },
+            { id: 8, name: "يوسف مخامرة", amount: 222, status: "paid" },
+            { id: 9, name: "إبراهيم الجبارين", amount: 222, status: "unpaid" },
+            { id: 10, name: "إسماعيل حوشية", amount: 222, status: "paid" },
+            { id: 11, name: "صالح العزازمة", amount: 222, status: "paid" },
+            { id: 12, name: "حسن جبارين", amount: 222, status: "unpaid" },
+            { id: 13, name: "طارق الجبارين", amount: 222, status: "paid" },
+            { id: 14, name: "علي أبو صبحة", amount: 222, status: "paid" }
+        ];
+
+        // Global State Variables
+        let currentMonth = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
+        let appData = {};
+        let currentUser = null;
+
+        // On Page Initialization
+        window.onload = function() {
+            document.getElementById('yearSpan').textContent = new Date().getFullYear();
+            document.getElementById('monthSelect').value = currentMonth;
+            document.getElementById('expenseDate').valueAsDate = new Date();
+
+            loadData();
+
+            // Auto-check saved user session
+            const savedUser = localStorage.getItem('shab_albatam_logged_user');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    showMainApp();
+                } catch(e) {
+                    showLoginOverlay();
+                }
+            } else {
+                showLoginOverlay();
+            }
+        };
+
+        // Normalize string for easy matching
+        function normalizeStr(str) {
+            if (!str) return '';
+            return str.trim().toLowerCase()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/\s+/g, ' ');
+        }
+
+        // Login Handler
+        function handleLogin(e) {
+            if (e) e.preventDefault();
+            
+            const nameInput = document.getElementById('loginName').value;
+            const passwordInput = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            errorDiv.classList.add('hidden');
+
+            const cleanName = normalizeStr(nameInput);
+            const cleanPass = passwordInput ? passwordInput.trim() : '';
+
+            if (!cleanName) {
+                errorDiv.textContent = 'يرجى كتابة اسم المعلم أو المنسق للدخول';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            if (!cleanPass) {
+                errorDiv.textContent = 'يرجى إدخال كلمة المرور (222)';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Check Passcode (Accepts '222' or '123456')
+            const isPasswordCorrect = (cleanPass === '222' || cleanPass === '123456');
+
+            if (!isPasswordCorrect) {
+                errorDiv.textContent = 'كلمة المرور غير صحيحة. كلمة المرور الافتراضية هي 222';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Coordinator/Admin Matching
+            const isAdmin = cleanName.includes('نزار') || cleanName.includes('مدير') || cleanName.includes('منسق');
+
+            // Teachers Matching
+            const currentTeachers = appData[currentMonth]?.teachers || defaultTeachers;
+            const foundTeacher = currentTeachers.find(t => {
+                const teacherClean = normalizeStr(t.name);
+                return teacherClean.includes(cleanName) || cleanName.includes(teacherClean);
+            });
+
+            if (isAdmin) {
+                currentUser = { name: 'الأستاذ نزار الجبارين (منسق اللجنة)', role: 'coordinator' };
+                localStorage.setItem('shab_albatam_logged_user', JSON.stringify(currentUser));
+                showMainApp();
+                showToast('أهلاً وسهلاً بك الأستاذ نزار الجبارين');
+            } else if (foundTeacher) {
+                currentUser = { name: foundTeacher.name, role: 'teacher' };
+                localStorage.setItem('shab_albatam_logged_user', JSON.stringify(currentUser));
+                showMainApp();
+                showToast(`أهلاً وسهلاً بك ${foundTeacher.name}`);
+            } else {
+                // If password is 222 and name is typed, allow login with typed name
+                currentUser = { name: nameInput.trim(), role: 'teacher' };
+                localStorage.setItem('shab_albatam_logged_user', JSON.stringify(currentUser));
+                showMainApp();
+                showToast(`أهلاً وسهلاً بك ${nameInput.trim()}`);
+            }
+        }
+
+        // Quick login for Nizar Al-Jabarin
+        function quickLoginNizar() {
+            document.getElementById('loginName').value = 'نزار الجبارين';
+            document.getElementById('loginPassword').value = '222';
+            handleLogin();
+        }
+
+        // Logout Handler
+        function handleLogout() {
+            localStorage.removeItem('shab_albatam_logged_user');
+            currentUser = null;
+            showLoginOverlay();
+            showToast('تم تسجيل الخروج بنجاح');
+        }
+
+        function showLoginOverlay() {
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginName').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('currentUserName').textContent = currentUser ? currentUser.name : 'الأستاذ نزار الجبارين';
+            renderAll();
+        }
+
+        // Load Data from LocalStorage
+        function loadData() {
+            const saved = localStorage.getItem('shab_albatam_social_data');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch(e) {
+                    appData = {};
+                }
+            }
+            if (!appData[currentMonth]) {
+                appData[currentMonth] = {
+                    teachers: JSON.parse(JSON.stringify(defaultTeachers)),
+                    expenses: [
+                        { id: 101, date: `${currentMonth}-05`, title: "عيادة مريض معلم في المستشفى", category: "عيادة مريض", amount: 200 },
+                        { id: 102, date: `${currentMonth}-12`, title: "مباركة مولود جديد للزميل", category: "مباركة ومناسبة", amount: 150 }
+                    ]
+                };
+                saveData();
+            }
+        }
+
+        // Save Data to LocalStorage
+        function saveData() {
+            localStorage.setItem('shab_albatam_social_data', JSON.stringify(appData));
+            renderAll();
+        }
+
+        // Change Report Month
+        function changeMonth() {
+            currentMonth = document.getElementById('monthSelect').value;
+            if (!appData[currentMonth]) {
+                appData[currentMonth] = {
+                    teachers: JSON.parse(JSON.stringify(defaultTeachers)),
+                    expenses: []
+                };
+                saveData();
+            } else {
+                renderAll();
+            }
+        }
+
+        // Render All UI Sections
+        function renderAll() {
+            updateDashboard();
+            renderTeachers();
+            renderExpenses();
+        }
+
+        // Update Dashboard Statistics
+        function updateDashboard() {
+            const monthData = appData[currentMonth] || { teachers: [], expenses: [] };
+            
+            // Calculate Collections
+            const totalExpected = monthData.teachers.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+            const totalCollected = monthData.teachers
+                .filter(t => t.status === 'paid')
+                .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+            // Calculate Expenses
+            const totalExpenses = monthData.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+            // Calculate Net Balance
+            const remaining = totalCollected - totalExpenses;
+
+            // DOM Updates
+            document.getElementById('totalCollected').textContent = `${totalCollected.toLocaleString()} ₪`;
+            document.getElementById('collectedStatusText').textContent = `من أصل ${totalExpected.toLocaleString()} ₪ متوقعة (${monthData.teachers.filter(t => t.status === 'paid').length}/${monthData.teachers.length} دفعوا)`;
+
+            document.getElementById('totalExpenses').textContent = `${totalExpenses.toLocaleString()} ₪`;
+            document.getElementById('expensesCountText').textContent = `${monthData.expenses.length} عمليات صرف هذا الشهر`;
+
+            const remainingEl = document.getElementById('remainingBalance');
+            remainingEl.textContent = `${remaining.toLocaleString()} ₪`;
+            if (remaining < 0) {
+                remainingEl.className = "text-3xl font-black text-rose-400 mb-1";
+            } else {
+                remainingEl.className = "text-3xl font-black text-amber-400 mb-1";
+            }
+        }
+
+        // Render Teachers Table
+        function renderTeachers() {
+            const tbody = document.getElementById('teachersTableBody');
+            tbody.innerHTML = '';
+            
+            const monthData = appData[currentMonth] || { teachers: [] };
+            const searchQuery = normalizeStr(document.getElementById('searchTeacher').value);
+
+            const filtered = monthData.teachers.filter(t => normalizeStr(t.name).includes(searchQuery));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">لا يوجد معلمين يطابقون البحث</td></tr>`;
+                return;
+            }
+
+            filtered.forEach((teacher, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                
+                const isPaid = teacher.status === 'paid';
+                
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 text-slate-400 font-bold">${index + 1}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-800">${teacher.name}</td>
+                    <td class="py-3.5 px-4 text-center font-extrabold text-slate-700">${teacher.amount} ₪</td>
+                    <td class="py-3.5 px-4 text-center">
+                        <button onclick="togglePayment(${teacher.id})" class="no-print cursor-pointer inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition ${isPaid ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'}">
+                            <i class="fa-solid ${isPaid ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600'}"></i>
+                            ${isPaid ? 'تم الدفع' : 'لم يدفع'}
+                        </button>
+                        <span class="print-only font-bold ${isPaid ? 'text-emerald-700' : 'text-rose-700'}">
+                            ${isPaid ? 'تم الدفع' : 'لم يدفع'}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-center no-print">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editTeacher(${teacher.id})" class="text-slate-500 hover:text-amber-600 p-1.5 rounded-lg hover:bg-amber-50 transition cursor-pointer" title="تعديل">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteTeacher(${teacher.id})" class="text-slate-500 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="حذف">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Toggle Payment Status
+        function togglePayment(teacherId) {
+            const teachers = appData[currentMonth].teachers;
+            const teacher = teachers.find(t => t.id === teacherId);
+            if (teacher) {
+                teacher.status = teacher.status === 'paid' ? 'unpaid' : 'paid';
+                saveData();
+                showToast(`تم تغيير حالة الدفع للمعلم: ${teacher.name}`);
+            }
+        }
+
+        // Add/Edit Teacher Modal Controls
+        function openAddTeacherModal() {
+            document.getElementById('teacherModalTitle').innerHTML = `<i class="fa-solid fa-user-plus text-amber-500"></i> إضافة معلم جديد`;
+            document.getElementById('teacherId').value = '';
+            document.getElementById('teacherName').value = '';
+            document.getElementById('teacherAmount').value = '222';
+            document.getElementById('teacherStatus').value = 'paid';
+            document.getElementById('teacherModal').classList.remove('hidden');
+        }
+
+        function editTeacher(id) {
+            const teacher = appData[currentMonth].teachers.find(t => t.id === id);
+            if (teacher) {
+                document.getElementById('teacherModalTitle').innerHTML = `<i class="fa-solid fa-user-pen text-amber-500"></i> تعديل بيانات المعلم`;
+                document.getElementById('teacherId').value = teacher.id;
+                document.getElementById('teacherName').value = teacher.name;
+                document.getElementById('teacherAmount').value = teacher.amount;
+                document.getElementById('teacherStatus').value = teacher.status;
+                document.getElementById('teacherModal').classList.remove('hidden');
+            }
+        }
+
+        function closeTeacherModal() {
+            document.getElementById('teacherModal').classList.add('hidden');
+        }
+
+        function handleTeacherSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('teacherId').value;
+            const name = document.getElementById('teacherName').value.trim();
+            const amount = Number(document.getElementById('teacherAmount').value) || 222;
+            const status = document.getElementById('teacherStatus').value;
+
+            if (id) {
+                // Update
+                const teacher = appData[currentMonth].teachers.find(t => t.id == id);
+                if (teacher) {
+                    teacher.name = name;
+                    teacher.amount = amount;
+                    teacher.status = status;
+                }
+            } else {
+                // Add
+                const newTeacher = {
+                    id: Date.now(),
+                    name,
+                    amount,
+                    status
+                };
+                appData[currentMonth].teachers.push(newTeacher);
+            }
+
+            saveData();
+            closeTeacherModal();
+            showToast('تم حفظ بيانات المعلم بنجاح');
+        }
+
+        function deleteTeacher(id) {
+            if (confirm('هل أنت تأكد من رغبتك في حذف هذا المعلم من السجل؟')) {
+                appData[currentMonth].teachers = appData[currentMonth].teachers.filter(t => t.id !== id);
+                saveData();
+                showToast('تم حذف المعلم بنجاح');
+            }
+        }
+
+        // Render Expenses Table
+        function renderExpenses() {
+            const tbody = document.getElementById('expensesTableBody');
+            tbody.innerHTML = '';
+
+            const monthData = appData[currentMonth] || { expenses: [] };
+            const searchQuery = normalizeStr(document.getElementById('searchExpense').value);
+            const categoryFilter = document.getElementById('filterCategory').value;
+
+            const filtered = monthData.expenses.filter(e => {
+                const matchesSearch = normalizeStr(e.title).includes(searchQuery) || normalizeStr(e.category).includes(searchQuery);
+                const matchesCat = categoryFilter === '' || e.category === categoryFilter;
+                return matchesSearch && matchesCat;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">لا توجد مصروفات مسجلة تطابق التحديد</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(exp => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-medium text-slate-600">${exp.date}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-800">${exp.title}</td>
+                    <td class="py-3.5 px-4">
+                        <span class="inline-block bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-semibold">
+                            ${exp.category}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-center font-black text-rose-600">${exp.amount} ₪</td>
+                    <td class="py-3.5 px-4 text-center no-print">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editExpense(${exp.id})" class="text-slate-500 hover:text-amber-600 p-1.5 rounded-lg hover:bg-amber-50 transition cursor-pointer" title="تعديل">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteExpense(${exp.id})" class="text-slate-500 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="حذف">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Add/Edit Expense Modal Controls
+        function openExpenseModal() {
+            document.getElementById('expenseModalTitle').innerHTML = `<i class="fa-solid fa-receipt text-rose-500"></i> إضافة مصروف جديد`;
+            document.getElementById('expenseId').value = '';
+            document.getElementById('expenseTitle').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseCategory').value = 'عيادة مريض';
+            document.getElementById('expenseDate').valueAsDate = new Date();
+            document.getElementById('expenseModal').classList.remove('hidden');
+        }
+
+        function editExpense(id) {
+            const exp = appData[currentMonth].expenses.find(e => e.id === id);
+            if (exp) {
+                document.getElementById('expenseModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-rose-500"></i> تعديل المصروف`;
+                document.getElementById('expenseId').value = exp.id;
+                document.getElementById('expenseDate').value = exp.date;
+                document.getElementById('expenseTitle').value = exp.title;
+                document.getElementById('expenseCategory').value = exp.category;
+                document.getElementById('expenseAmount').value = exp.amount;
+                document.getElementById('expenseModal').classList.remove('hidden');
+            }
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').classList.add('hidden');
+        }
+
+        function handleExpenseSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('expenseId').value;
+            const date = document.getElementById('expenseDate').value;
+            const title = document.getElementById('expenseTitle').value.trim();
+            const category = document.getElementById('expenseCategory').value;
+            const amount = Number(document.getElementById('expenseAmount').value) || 0;
+
+            if (id) {
+                const exp = appData[currentMonth].expenses.find(e => e.id == id);
+                if (exp) {
+                    exp.date = date;
+                    exp.title = title;
+                    exp.category = category;
+                    exp.amount = amount;
+                }
+            } else {
+                const newExpense = {
+                    id: Date.now(),
+                    date,
+                    title,
+                    category,
+                    amount
+                };
+                appData[currentMonth].expenses.push(newExpense);
+            }
+
+            saveData();
+            closeExpenseModal();
+            showToast('تم حفظ المصروف بنجاح');
+        }
+
+        function deleteExpense(id) {
+            if (confirm('هل أنت تأكد من حذف هذا المصروف؟')) {
+                appData[currentMonth].expenses = appData[currentMonth].expenses.filter(e => e.id !== id);
+                saveData();
+                showToast('تم حذف المصروف بنجاح');
+            }
+        }
+
+        // Reset Data
+        function resetData() {
+            if (confirm('هل أنت متأكد من إعادة ضبط البيانات للشهر الحالي واستعادة القائمة الافتراضية؟')) {
+                delete appData[currentMonth];
+                loadData();
+                renderAll();
+                showToast('تمت استعادة البيانات الافتراضية للشهر الحالي');
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border-r-4 border-amber-500 flex items-center gap-2 pointer-events-auto animate-bounce";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-amber-400"></i> ${message}`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
